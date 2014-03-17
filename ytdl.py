@@ -13,25 +13,33 @@ def _real_main(urls):
     Returns: 
         None
     """
-    _yt = YouTube()
-
     for url in urls:
         print("Attempting to grap: {0}".format(url))
-        if not url.startswith("http://"): 
-            continue
+        download(url)
 
-        url = url.rstrip()
-        _yt.url = url
 
-        try:
-            _video = select_video(_yt)
-            download(url, _video)
+def download(url):
+    """Download a single video
 
-        except ValueError as e:
-            print("Failed to download: {0}: {1}".format(url, e))
+    Arguments:
+        url - A single URL to download
 
-        except HTTPError as e:
-            print("OOPS! Youtube said no: {0}: {1}".format(url, e))
+    returns:
+        None
+    """
+    if not url.startswith("http://"):
+        return
+
+    yt = YouTube()
+    yt.url = url
+
+    try:
+        video = select_video(yt)
+        _download(url, video)
+    except ValueError as e:
+        print("Failed to retrieve video: {0} - {1}".format(url, e))
+    except HTTPError as e:
+        print("Oops! Youtube said NO!: {0} - {1}".format(url, e))
 
 
 def select_video(yt, prefered_codec=['mp4','flv']):
@@ -54,13 +62,12 @@ def select_video(yt, prefered_codec=['mp4','flv']):
     raise ValueError("No Codec Found")
 
 
-def download(url, video, quiet=False):
+def _download(url, video):
     """Download the video from YouTube
 
     Arguments:
         url - The url of the video, for refrence only
         video - the pytube.video you want to download
-        quiet - If true, disables verbose output.
 
     Raises:
         HTTPError - Ushualy if your request was blocked
@@ -68,13 +75,7 @@ def download(url, video, quiet=False):
     Returns:
         None
     """
-    def _show_progress(current, total):
-        print("{0}: {1}/{2}".format(url, current, total))
-
-    if not quiet:
-        print("Downloading {1}: {0}".format(video, url))
-        video.on_progress = _show_progress
-
+    print("Downloading {1}: {0}".format(video, url))
     video.download()
 
 
